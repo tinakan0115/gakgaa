@@ -71,6 +71,37 @@ select {
 .pcard-meta { font-size: 12px; color: #888; margin-top: 5px; display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
 .cat-pill { font-size: 11px; padding: 2px 9px; border-radius: 20px; background: #E1F5EE; color: #085041; font-weight: 500; }
 .pcard-date { font-size: 11px; color: #bbb; margin-top: 5px; }
+.pcard-count { font-size: 11px; color: #1D9E75; font-weight: 600; }
+
+/* Product group card */
+.pgcard { background: #fff; border-radius: 14px; padding: 13px 15px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
+.pgcard:active { background: #f5faf8; }
+.pgcard-left { flex: 1; min-width: 0; }
+.pgcard-name { font-size: 15px; font-weight: 600; color: #111; }
+.pgcard-sub { font-size: 12px; color: #888; margin-top: 3px; display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.pgcard-right { text-align: right; flex-shrink: 0; margin-left: 12px; }
+.pgcard-price { font-size: 17px; font-weight: 700; color: #0F6E56; }
+.pgcard-unit { font-size: 11px; color: #999; }
+.pgcard-arrow { font-size: 14px; color: #ccc; margin-left: 8px; }
+
+/* Autocomplete */
+.suggest-item { padding: 11px 14px; font-size: 14px; color: #111; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
+.suggest-item:last-child { border-bottom: none; }
+.suggest-item:active { background: #E1F5EE; }
+.suggest-name { font-weight: 500; }
+.suggest-meta { font-size: 12px; color: #999; text-align: right; }
+
+/* History list in product overlay */
+.ph-item { background: #f9f9f9; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.ph-item:active { background: #E1F5EE; }
+.ph-item-left { flex: 1; }
+.ph-item-mkt { font-size: 14px; font-weight: 600; color: #111; }
+.ph-item-date { font-size: 12px; color: #aaa; margin-top: 2px; }
+.ph-item-brand { font-size: 12px; color: #888; margin-top: 1px; }
+.ph-item-right { text-align: right; }
+.ph-item-price { font-size: 17px; font-weight: 700; color: #0F6E56; }
+.ph-item-unit { font-size: 11px; color: #999; }
+.ph-lowest { font-size: 10px; background: #E1F5EE; color: #085041; padding: 2px 7px; border-radius: 20px; font-weight: 600; margin-top: 3px; display: inline-block; }
 .empty { text-align: center; padding: 50px 20px; color: #aaa; font-size: 14px; line-height: 1.8; }
 .empty-icon { font-size: 40px; margin-bottom: 10px; }
 
@@ -129,7 +160,7 @@ select {
   <div class="top-bar">
     <div>
       <div class="app-title">格價簿 🛒</div>
-      <div class="app-sub">記錄超市格價，慳錢由此開始</div>
+      <div class="app-sub">歡迎嚟到 Tina 格價小天地！</div>
     </div>
     <button id="btn-share" class="share-btn">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -172,7 +203,10 @@ select {
     <div class="card">
       <div class="card-head"><div class="card-title">產品資訊</div></div>
       <label>產品名稱 *</label>
-      <input type="text" id="f-name" placeholder="例：全脂牛奶 1L">
+      <div style="position:relative;">
+        <input type="text" id="f-name" placeholder="例：全脂牛奶 1L" autocomplete="off">
+        <div id="name-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #1D9E75;border-top:none;border-radius:0 0 10px 10px;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+      </div>
       <label>品牌 / 備註</label>
       <input type="text" id="f-brand" placeholder="例：Beatrice、自家品牌">
     </div>
@@ -222,22 +256,28 @@ select {
   </div>
 
   <div id="sec-search" class="section">
-    <input class="search-box" id="q" placeholder="🔍  搜尋產品名稱、超市...">
+    <input class="search-box" id="q" placeholder="🔍  搜尋產品名稱...">
     <div class="filter-row" id="filter-chips"></div>
-    <div class="sort-row">
-      <span>排序：</span>
-      <select id="sort">
-        <option value="new">最新記錄</option>
-        <option value="pa">價格：低至高</option>
-        <option value="pd">價格：高至低</option>
-        <option value="name">產品名稱</option>
-      </select>
-    </div>
     <div id="results"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Product history overlay -->
+<div class="overlay" id="ov-product">
+  <div class="sheet" id="ov-product-inner">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">
+      <div>
+        <div id="ph-name" style="font-size:17px;font-weight:700;"></div>
+        <div id="ph-cat" style="font-size:12px;color:#1D9E75;margin-top:2px;"></div>
+      </div>
+      <button class="close-btn" id="ph-close-btn">✕</button>
+    </div>
+    <div id="ph-list"></div>
+  </div>
+</div>
 
 <!-- Detail overlay -->
 <div class="overlay" id="ov-detail">
@@ -517,6 +557,43 @@ function quickAdd(type) {
   save();
 }
 
+// ── Autocomplete ──
+function renderSuggestions() {
+  var q = document.getElementById('f-name').value.trim().toLowerCase();
+  var box = document.getElementById('name-suggestions');
+  if (!q || q.length < 1) { box.style.display = 'none'; return; }
+
+  // Get unique product names matching query
+  var seen = {};
+  var matches = [];
+  entries.forEach(function(e){
+    var key = e.name.trim().toLowerCase();
+    if (key.indexOf(q) !== -1 && !seen[key]) {
+      seen[key] = true;
+      // Find latest entry for this product
+      var latest = entries.filter(function(x){ return x.name.trim().toLowerCase()===key; })
+                         .sort(function(a,b){ return b.id-a.id; })[0];
+      matches.push(latest);
+    }
+  });
+
+  if (!matches.length) { box.style.display = 'none'; return; }
+
+  box.innerHTML = matches.slice(0,6).map(function(e, i){
+    return '<div class="suggest-item" data-suggest-idx="'+i+'">' +
+      '<div class="suggest-name">'+he(e.name)+'</div>' +
+      '<div class="suggest-meta">'+he(e.cat)+' · '+he(e.mkt)+'</div>' +
+    '</div>';
+  }).join('');
+  box._matches = matches;
+  box.style.display = 'block';
+}
+
+function applySuggestion(e) {
+  document.getElementById('f-name').value = e.name;
+  document.getElementById('name-suggestions').style.display = 'none';
+}
+
 // ── Submit ──
 function submit() {
   var name  = document.getElementById('f-name').value.trim();
@@ -552,31 +629,81 @@ function renderChips() {
 function setFilter(c) { filterCat=c; renderChips(); render(); }
 
 function render() {
-  var q    = (document.getElementById('q').value||'').trim().toLowerCase();
-  var sort = document.getElementById('sort').value;
+  var q = (document.getElementById('q').value||'').trim().toLowerCase();
   var list = entries.filter(function(e){
     var mq = !q || e.name.toLowerCase().indexOf(q)!==-1 ||
-             (e.brand&&e.brand.toLowerCase().indexOf(q)!==-1) ||
-             e.mkt.toLowerCase().indexOf(q)!==-1;
+             (e.brand&&e.brand.toLowerCase().indexOf(q)!==-1);
     return mq && (!filterCat||e.cat===filterCat);
-  }).slice();
-  if (sort==='pa')        list.sort(function(a,b){ return a.price-b.price; });
-  else if (sort==='pd')   list.sort(function(a,b){ return b.price-a.price; });
-  else if (sort==='name') list.sort(function(a,b){ return a.name.localeCompare(b.name,'zh-HK'); });
+  });
+
+  // Group by product name
+  var groups = {};
+  var groupOrder = [];
+  list.forEach(function(e){
+    var key = e.name.trim().toLowerCase();
+    if (!groups[key]) { groups[key] = { name:e.name, cat:e.cat, brand:e.brand, items:[] }; groupOrder.push(key); }
+    groups[key].items.push(e);
+  });
+
   var el = document.getElementById('results');
-  if (!list.length) {
+  if (!groupOrder.length) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">🛒</div>'+(entries.length?'找不到相關記錄':'未有格價記錄<br>快去新增第一筆！')+'</div>';
     return;
   }
-  el.innerHTML = list.map(function(e){
-    var idx = entries.indexOf(e);
-    return '<div class="pcard" data-entry-idx="'+idx+'">' +
-      '<div class="pcard-header">' +
-        '<div><div class="pcard-name">'+he(e.name)+'</div>' +
-        '<div class="pcard-meta"><span>'+he(e.mkt)+'</span><span class="cat-pill">'+he(e.cat)+'</span>'+(e.brand?'<span>'+he(e.brand)+'</span>':'')+'</div></div>' +
-        '<div><div class="pcard-price">$'+e.price.toFixed(2)+'</div><div class="pcard-unit">/'+he(e.unit)+'</div></div>' +
-      '</div><div class="pcard-date">'+e.date+'</div></div>';
+
+  // Sort groups by name
+  groupOrder.sort(function(a,b){ return groups[a].name.localeCompare(groups[b].name,'zh-HK'); });
+
+  el.innerHTML = groupOrder.map(function(key){
+    var g = groups[key];
+    var sorted = g.items.slice().sort(function(a,b){ return a.price-b.price; });
+    var lowest = sorted[0];
+    var count  = g.items.length;
+    return '<div class="pgcard" data-pname="'+he(g.name)+'">' +
+      '<div class="pgcard-left">' +
+        '<div class="pgcard-name">'+he(g.name)+'</div>' +
+        '<div class="pgcard-sub">' +
+          '<span class="cat-pill">'+he(g.cat)+'</span>' +
+          '<span>最低：'+he(lowest.mkt)+'</span>' +
+          '<span style="color:#bbb;">'+count+'條記錄</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="pgcard-right">' +
+        '<div class="pgcard-price">$'+lowest.price.toFixed(2)+'</div>' +
+        '<div class="pgcard-unit">/'+he(lowest.unit)+'</div>' +
+      '</div>' +
+      '<span class="pgcard-arrow">›</span>' +
+    '</div>';
   }).join('');
+}
+
+function openProduct(name) {
+  var items = entries.filter(function(e){ return e.name.trim().toLowerCase() === name.trim().toLowerCase(); });
+  if (!items.length) return;
+  var sorted = items.slice().sort(function(a,b){ return a.price-b.price; });
+  var minPrice = sorted[0].price;
+
+  document.getElementById('ph-name').textContent = items[0].name;
+  document.getElementById('ph-cat').textContent  = items[0].cat + (items[0].brand ? ' · '+items[0].brand : '');
+
+  document.getElementById('ph-list').innerHTML = sorted.map(function(e){
+    var idx = entries.indexOf(e);
+    var isLowest = e.price === minPrice;
+    return '<div class="ph-item" data-entry-idx="'+idx+'">' +
+      '<div class="ph-item-left">' +
+        '<div class="ph-item-mkt">'+he(e.mkt)+'</div>' +
+        (e.brand?'<div class="ph-item-brand">'+he(e.brand)+'</div>':'') +
+        '<div class="ph-item-date">'+e.date+'</div>' +
+      '</div>' +
+      '<div class="ph-item-right">' +
+        '<div class="ph-item-price">CA$'+e.price.toFixed(2)+'</div>' +
+        '<div class="ph-item-unit">/'+he(e.unit)+'</div>' +
+        (isLowest?'<div class="ph-lowest">最低價</div>':'') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  openOv('ov-product');
 }
 
 // ── Detail ──
@@ -833,6 +960,19 @@ function applyScanResult(item) {
 // ALL EVENT LISTENERS — no inline onclick anywhere
 // ════════════════════════════════
 
+// Autocomplete
+document.getElementById('f-name').addEventListener('input', renderSuggestions);
+document.getElementById('f-name').addEventListener('blur', function(){
+  // small delay so click on suggestion registers first
+  setTimeout(function(){ document.getElementById('name-suggestions').style.display='none'; }, 200);
+});
+document.getElementById('name-suggestions').addEventListener('click', function(ev){
+  var item = ev.target.closest('.suggest-item'); if (!item) return;
+  var matches = document.getElementById('name-suggestions')._matches || [];
+  var idx = parseInt(item.getAttribute('data-suggest-idx'));
+  if (matches[idx]) applySuggestion(matches[idx]);
+});
+
 // Tabs
 document.getElementById('tab-btn-add').addEventListener('click', function(){ switchTab('add'); });
 document.getElementById('tab-btn-search').addEventListener('click', function(){ switchTab('search'); });
@@ -900,15 +1040,25 @@ document.getElementById('btn-submit').addEventListener('click', submit);
 
 // Search
 document.getElementById('q').addEventListener('input', render);
-document.getElementById('sort').addEventListener('change', render);
 document.getElementById('filter-chips').addEventListener('click', function(ev){
   var btn = ev.target.closest('.chip-filter'); if (!btn) return;
   var idx = parseInt(btn.getAttribute('data-idx'));
   setFilter(idx===-1 ? null : cats[idx]);
 });
 document.getElementById('results').addEventListener('click', function(ev){
-  var card = ev.target.closest('.pcard'); if (!card) return;
-  openDetail(parseInt(card.getAttribute('data-entry-idx')));
+  var card = ev.target.closest('.pgcard'); if (!card) return;
+  openProduct(card.getAttribute('data-pname'));
+});
+
+// Product history overlay
+document.getElementById('ov-product').addEventListener('click', function(ev){
+  if (!document.getElementById('ov-product-inner').contains(ev.target)) closeOv('ov-product');
+});
+document.getElementById('ph-close-btn').addEventListener('click', function(){ closeOv('ov-product'); });
+document.getElementById('ph-list').addEventListener('click', function(ev){
+  var item = ev.target.closest('.ph-item'); if (!item) return;
+  closeOv('ov-product');
+  openDetail(parseInt(item.getAttribute('data-entry-idx')));
 });
 
 // Detail overlay
