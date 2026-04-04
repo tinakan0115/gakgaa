@@ -84,6 +84,16 @@ select {
 .pgcard-unit { font-size: 11px; color: #999; }
 .pgcard-arrow { font-size: 14px; color: #ccc; margin-left: 8px; }
 
+/* Flyer cards */
+.flyer-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; gap: 10px; }
+.flyer-item:last-child { border-bottom: none; }
+.flyer-icon { width: 40px; height: 40px; border-radius: 10px; background: #E1F5EE; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.flyer-info { flex: 1; min-width: 0; }
+.flyer-mkt { font-size: 15px; font-weight: 600; color: #111; }
+.flyer-url { font-size: 12px; color: #1D9E75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.flyer-open-btn { background: #1D9E75; color: #fff; border: none; border-radius: 20px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.flyer-edit-btn { background: #f0f0f0; color: #555; border: none; border-radius: 20px; padding: 7px 12px; font-size: 13px; cursor: pointer; flex-shrink: 0; }
+
 /* Autocomplete */
 .suggest-item { padding: 11px 14px; font-size: 14px; color: #111; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
 .suggest-item:last-child { border-bottom: none; }
@@ -176,6 +186,7 @@ select {
   <div class="tab-bar">
     <button class="tab active" id="tab-btn-add">＋ 新增記錄</button>
     <button class="tab" id="tab-btn-search">🔍 搜尋格價</button>
+    <button class="tab" id="tab-btn-flyers">📰 Flyers</button>
   </div>
 
   <div id="sec-add" class="section active">
@@ -204,7 +215,7 @@ select {
       <div class="card-head"><div class="card-title">產品資訊</div></div>
       <label>產品名稱 *</label>
       <div style="position:relative;">
-        <input type="text" id="f-name" placeholder="例：牛奶" autocomplete="off">
+        <input type="text" id="f-name" placeholder="例：全脂牛奶 1L" autocomplete="off">
         <div id="name-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #1D9E75;border-top:none;border-radius:0 0 10px 10px;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
       </div>
       <label>品牌 / 備註</label>
@@ -259,6 +270,30 @@ select {
     <input class="search-box" id="q" placeholder="🔍  搜尋產品名稱...">
     <div class="filter-row" id="filter-chips"></div>
     <div id="results"></div>
+  </div>
+
+  <div id="sec-flyers" class="section">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📰 超市 Flyers</div>
+        <button class="manage-btn" id="btn-add-flyer">＋ 新增</button>
+      </div>
+      <div id="flyer-list"></div>
+      <div id="flyer-empty" style="text-align:center;padding:24px 0;color:#aaa;font-size:14px;display:none;">未有 Flyer，撳「新增」加入超市連結</div>
+    </div>
+  </div>
+</div>
+
+<!-- Flyer add/edit overlay -->
+<div class="overlay" id="ov-flyer">
+  <div class="sheet" id="ov-flyer-inner">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span id="flyer-ov-title">新增 Flyer</span><button class="close-btn" id="flyer-close-btn">✕</button></div>
+    <label>超市名稱</label>
+    <input type="text" id="flyer-mkt-input" placeholder="例：Walmart">
+    <label>Flyer 連結 (URL)</label>
+    <input type="text" id="flyer-url-input" placeholder="例：https://www.walmart.ca/flyer">
+    <button class="submit-btn" id="flyer-save-btn" style="margin-top:14px;">儲存</button>
   </div>
 </div>
 
@@ -365,7 +400,9 @@ select {
 var cats  = ['飲品','零食','奶製品','肉類','蔬菜','調味料','個人護理','清潔用品'];
 var mkts  = ['Walmart','Costco','No Frills','FreshCo','T&T'];
 var units = ['個','包','罐','升 (L)','毫升 (ml)','克 (g)','公斤 (kg)','打','件','盒'];
+var flyers = [];  // [{mkt, url}]
 var selCat = null, selMkt = null, filterCat = null, curIdx = null, editMode = '';
+var flyerEditIdx = -1;
 var entries = [];
 var _confirmCb = null;
 
@@ -410,10 +447,10 @@ var _syncTimer = null;
 var _lastSaveTime = 0;
 
 function save() {
-  try { localStorage.setItem('gakgaa3', JSON.stringify({c:cats,m:mkts,u:units,e:entries})); } catch(_) {}
+  try { localStorage.setItem('gakgaa3', JSON.stringify({c:cats,m:mkts,u:units,e:entries,f:flyers})); } catch(_) {}
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(function(){
-    var body = { fields: { c: toFS(cats), m: toFS(mkts), u: toFS(units), e: toFS(entries) } };
+    var body = { fields: { c: toFS(cats), m: toFS(mkts), u: toFS(units), e: toFS(entries), f: toFS(flyers) } };
     fetch(FB_DOC_URL, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
       .then(function(r){ if(r.ok){ _lastSaveTime=Date.now(); showSyncStatus('✓ 已同步'); } else { showSyncStatus('⚠️ 同步失敗'); } })
       .catch(function(){ showSyncStatus('⚠️ 離線，資料已儲存在本機'); });
@@ -439,19 +476,19 @@ function loadData() {
         mkts    = f.m ? fromFS(f.m) : mkts;
         units   = f.u ? fromFS(f.u) : units;
         entries = f.e ? fromFS(f.e) : entries;
+        flyers  = f.f ? fromFS(f.f) : flyers;
       }
       setLoadingState(false);
-      renderCats(); renderMkts(); renderUnits(); renderChips(); render();
-      // start polling for changes every 10s
+      renderCats(); renderMkts(); renderUnits(); renderChips(); render(); renderFlyers();
       startPolling();
     })
     .catch(function(){
       try {
         var _sv = localStorage.getItem('gakgaa3');
-        if (_sv) { var _sp=JSON.parse(_sv); cats=_sp.c||cats; mkts=_sp.m||mkts; units=_sp.u||units; entries=_sp.e||[]; }
+        if (_sv) { var _sp=JSON.parse(_sv); cats=_sp.c||cats; mkts=_sp.m||mkts; units=_sp.u||units; entries=_sp.e||[]; flyers=_sp.f||flyers; }
       } catch(_) {}
       setLoadingState(false);
-      renderCats(); renderMkts(); renderUnits(); renderChips(); render();
+      renderCats(); renderMkts(); renderUnits(); renderChips(); render(); renderFlyers();
       showSyncStatus('⚠️ 離線模式');
     });
 }
@@ -471,8 +508,9 @@ function startPolling() {
           mkts    = f.m ? fromFS(f.m) : mkts;
           units   = f.u ? fromFS(f.u) : units;
           entries = f.e ? fromFS(f.e) : entries;
-          try { localStorage.setItem('gakgaa3', JSON.stringify({c:cats,m:mkts,u:units,e:entries})); } catch(_) {}
-          renderCats(); renderMkts(); renderUnits(); renderChips(); render();
+          flyers  = f.f ? fromFS(f.f) : flyers;
+          try { localStorage.setItem('gakgaa3', JSON.stringify({c:cats,m:mkts,u:units,e:entries,f:flyers})); } catch(_) {}
+          renderCats(); renderMkts(); renderUnits(); renderChips(); render(); renderFlyers();
           showSyncStatus('↓ 收到最新資料');
         }
       }).catch(function(){});
@@ -522,9 +560,12 @@ if (apiKey) {
 function switchTab(t) {
   document.getElementById('sec-add').classList.toggle('active', t==='add');
   document.getElementById('sec-search').classList.toggle('active', t==='search');
+  document.getElementById('sec-flyers').classList.toggle('active', t==='flyers');
   document.getElementById('tab-btn-add').classList.toggle('active', t==='add');
   document.getElementById('tab-btn-search').classList.toggle('active', t==='search');
+  document.getElementById('tab-btn-flyers').classList.toggle('active', t==='flyers');
   if (t==='search') { renderChips(); render(); }
+  if (t==='flyers') { renderFlyers(); }
 }
 
 // ── Tag lists ──
@@ -957,6 +998,48 @@ function applyScanResult(item) {
 }
 
 // ════════════════════════════════
+// ── Flyers ──
+function renderFlyers() {
+  var list = document.getElementById('flyer-list');
+  var empty = document.getElementById('flyer-empty');
+  if (!flyers.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = flyers.map(function(f, i){
+    return '<div class="flyer-item">' +
+      '<div class="flyer-icon">🛒</div>' +
+      '<div class="flyer-info">' +
+        '<div class="flyer-mkt">'+he(f.mkt)+'</div>' +
+        '<div class="flyer-url">'+he(f.url)+'</div>' +
+      '</div>' +
+      '<button class="flyer-edit-btn" data-flyer-edit="'+i+'">✏️</button>' +
+      '<button class="flyer-open-btn" data-flyer-open="'+i+'">開啟</button>' +
+    '</div>';
+  }).join('');
+}
+
+function openFlyerOv(idx) {
+  flyerEditIdx = (idx === undefined) ? -1 : idx;
+  document.getElementById('flyer-ov-title').textContent = flyerEditIdx === -1 ? '新增 Flyer' : '編輯 Flyer';
+  document.getElementById('flyer-mkt-input').value = flyerEditIdx === -1 ? '' : flyers[flyerEditIdx].mkt;
+  document.getElementById('flyer-url-input').value = flyerEditIdx === -1 ? '' : flyers[flyerEditIdx].url;
+  openOv('ov-flyer');
+}
+
+function saveFlyer() {
+  var mkt = document.getElementById('flyer-mkt-input').value.trim();
+  var url = document.getElementById('flyer-url-input').value.trim();
+  if (!mkt) { toast('請填寫超市名稱'); return; }
+  if (!url) { toast('請填寫 Flyer 連結'); return; }
+  if (url.indexOf('http') !== 0) url = 'https://' + url;
+  if (flyerEditIdx === -1) {
+    flyers.push({ mkt: mkt, url: url });
+  } else {
+    flyers[flyerEditIdx] = { mkt: mkt, url: url };
+  }
+  save(); renderFlyers(); closeOv('ov-flyer');
+  toast(flyerEditIdx === -1 ? '✓ 已新增 Flyer' : '✓ 已更新 Flyer');
+}
+
 // ALL EVENT LISTENERS — no inline onclick anywhere
 // ════════════════════════════════
 
@@ -976,6 +1059,7 @@ document.getElementById('name-suggestions').addEventListener('click', function(e
 // Tabs
 document.getElementById('tab-btn-add').addEventListener('click', function(){ switchTab('add'); });
 document.getElementById('tab-btn-search').addEventListener('click', function(){ switchTab('search'); });
+document.getElementById('tab-btn-flyers').addEventListener('click', function(){ switchTab('flyers'); });
 
 // Share button
 document.getElementById('btn-share').addEventListener('click', function(){ openOv('ov-share'); });
