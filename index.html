@@ -215,7 +215,7 @@ select {
       <div class="card-head"><div class="card-title">產品資訊</div></div>
       <label>產品名稱 *</label>
       <div style="position:relative;">
-        <input type="text" id="f-name" placeholder="例：全脂牛奶 1L" autocomplete="off">
+        <input type="text" id="f-name" placeholder="例：牛奶" autocomplete="off">
         <div id="name-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #1D9E75;border-top:none;border-radius:0 0 10px 10px;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
       </div>
       <label>品牌 / 備註</label>
@@ -294,6 +294,7 @@ select {
     <label>Flyer 連結 (URL)</label>
     <input type="text" id="flyer-url-input" placeholder="例：https://www.walmart.ca/flyer">
     <button class="submit-btn" id="flyer-save-btn" style="margin-top:14px;">儲存</button>
+    <button class="del-btn" id="flyer-del-btn" style="display:none;margin-top:10px;">刪除此 Flyer</button>
   </div>
 </div>
 
@@ -1022,6 +1023,7 @@ function openFlyerOv(idx) {
   document.getElementById('flyer-ov-title').textContent = flyerEditIdx === -1 ? '新增 Flyer' : '編輯 Flyer';
   document.getElementById('flyer-mkt-input').value = flyerEditIdx === -1 ? '' : flyers[flyerEditIdx].mkt;
   document.getElementById('flyer-url-input').value = flyerEditIdx === -1 ? '' : flyers[flyerEditIdx].url;
+  document.getElementById('flyer-del-btn').style.display = flyerEditIdx === -1 ? 'none' : 'block';
   openOv('ov-flyer');
 }
 
@@ -1196,6 +1198,36 @@ document.getElementById('edit-list').addEventListener('click', function(ev){
   if (action==='delete')  editDelete(idx);
   if (action==='confirm') editConfirmRename(idx, btn.getAttribute('data-old'));
   if (action==='cancel')  renderEditList();
+});
+
+document.getElementById('flyer-del-btn').addEventListener('click', function(){
+  if (flyerEditIdx === -1) return;
+  var name = flyers[flyerEditIdx].mkt;
+  showConfirm('確定刪除「'+name+'」的 Flyer？', function(){
+    flyers.splice(flyerEditIdx, 1);
+    save(); renderFlyers(); closeOv('ov-flyer');
+    toast('已刪除「'+name+'」');
+  });
+});
+
+// Flyer overlay
+document.getElementById('btn-add-flyer').addEventListener('click', function(){ openFlyerOv(); });
+document.getElementById('flyer-close-btn').addEventListener('click', function(){ closeOv('ov-flyer'); });
+document.getElementById('flyer-save-btn').addEventListener('click', saveFlyer);
+document.getElementById('ov-flyer').addEventListener('click', function(ev){
+  if (!document.getElementById('ov-flyer-inner').contains(ev.target)) closeOv('ov-flyer');
+});
+document.getElementById('flyer-list').addEventListener('click', function(ev){
+  var editBtn = ev.target.closest('[data-flyer-edit]');
+  var openBtn = ev.target.closest('[data-flyer-open]');
+  if (editBtn) {
+    var i = parseInt(editBtn.getAttribute('data-flyer-edit'));
+    openFlyerOv(i);
+  } else if (openBtn) {
+    var i = parseInt(openBtn.getAttribute('data-flyer-open'));
+    var f = flyers[i];
+    if (f) window.open(f.url, '_blank');
+  }
 });
 
 // ── Init ──
