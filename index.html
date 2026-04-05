@@ -192,6 +192,7 @@ select {
   <div id="sec-add" class="section active">
     <div class="card">
       <div class="card-head"><div class="card-title">📷 AI 自動辨識</div></div>
+      <div style="font-size:12px;color:#aaa;margin-bottom:10px;">暫時未有得用，歡迎課 $5 俾我試整:) </div>
       <div id="api-key-area">
         <label style="margin-top:0">Anthropic API Key</label>
         <div class="api-key-row">
@@ -358,6 +359,15 @@ select {
           <select id="de-unit"></select>
         </div>
       </div>
+      <label>產品圖片（選填）</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+        <div id="de-photo-preview" style="width:64px;height:64px;border-radius:10px;background:#f5f5f5;border:1.5px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;">📷</div>
+        <div style="flex:1;">
+          <button class="manage-btn" id="btn-de-photo-pick" style="width:100%;text-align:center;padding:9px;">揀相 / 影相</button>
+          <button class="manage-btn" id="btn-de-photo-clear" style="width:100%;text-align:center;padding:9px;margin-top:6px;display:none;color:#E24B4A;background:#fff0f0;">移除圖片</button>
+        </div>
+      </div>
+      <input type="file" id="de-photo-input" accept="image/*" style="display:none">
       <button class="submit-btn" id="d-save-btn" style="margin-top:14px;">儲存更改 ✓</button>
     </div>
     <button class="del-btn" id="d-del">🗑  刪除此記錄</button>
@@ -830,11 +840,28 @@ function toggleDetailEdit() {
     document.getElementById('de-mkt').innerHTML  = mkts.map(function(m){ return '<option'+(m===e.mkt?' selected':'')+'>'+he(m)+'</option>'; }).join('');
     document.getElementById('de-cat').innerHTML  = cats.map(function(c){ return '<option'+(c===e.cat?' selected':'')+'>'+he(c)+'</option>'; }).join('');
     document.getElementById('de-unit').innerHTML = units.map(function(u){ return '<option'+(u===e.unit?' selected':'')+'>'+he(u)+'</option>'; }).join('');
+    // Load existing photo
+    setDePhotoPreview(e.photo || null);
     document.getElementById('d-view').style.display = 'none';
     document.getElementById('d-edit').style.display = 'block';
     document.getElementById('d-edit-btn').textContent = '✕ 取消';
   }
 }
+
+function setDePhotoPreview(base64) {
+  var prev = document.getElementById('de-photo-preview');
+  var clearBtn = document.getElementById('btn-de-photo-clear');
+  if (base64) {
+    prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;">';
+    clearBtn.style.display = 'block';
+    prev._photo = base64;
+  } else {
+    prev.innerHTML = '📷';
+    clearBtn.style.display = 'none';
+    prev._photo = null;
+  }
+}
+
 function saveDetailEdit() {
   var name  = document.getElementById('de-name').value.trim();
   var brand = document.getElementById('de-brand').value.trim();
@@ -842,10 +869,11 @@ function saveDetailEdit() {
   var mkt   = document.getElementById('de-mkt').value;
   var cat   = document.getElementById('de-cat').value;
   var unit  = document.getElementById('de-unit').value;
+  var photo = document.getElementById('de-photo-preview')._photo || null;
   if (!name)                 { toast('產品名稱不能為空'); return; }
   if (isNaN(price)||price<0) { toast('請填寫正確價錢');   return; }
   var e = entries[curIdx];
-  e.name=name; e.brand=brand; e.price=price; e.mkt=mkt; e.cat=cat; e.unit=unit;
+  e.name=name; e.brand=brand; e.price=price; e.mkt=mkt; e.cat=cat; e.unit=unit; e.photo=photo;
   save(); render(); renderChips();
   document.getElementById('d-name').textContent = e.name;
   document.getElementById('d-price').textContent = 'CA$'+e.price.toFixed(2)+' / '+e.unit;
@@ -1104,6 +1132,13 @@ document.getElementById('btn-photo-clear').addEventListener('click', function(){
 document.getElementById('f-photo-input').addEventListener('change', function(ev){
   var file = ev.target.files[0]; if (!file) return;
   compressImage(file, function(base64){ setPhotoPreview(base64); });
+  ev.target.value = '';
+});
+document.getElementById('btn-de-photo-pick').addEventListener('click', function(){ document.getElementById('de-photo-input').click(); });
+document.getElementById('btn-de-photo-clear').addEventListener('click', function(){ setDePhotoPreview(null); });
+document.getElementById('de-photo-input').addEventListener('change', function(ev){
+  var file = ev.target.files[0]; if (!file) return;
+  compressImage(file, function(base64){ setDePhotoPreview(base64); });
   ev.target.value = '';
 });
 
