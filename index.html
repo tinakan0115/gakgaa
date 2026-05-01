@@ -319,7 +319,22 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- Crop overlay -->
+
+<div class="overlay" id="ov-crop">
+  <div class="sheet" id="ov-crop-inner" style="padding:20px 20px 36px;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">裁剪圖片<button class="close-btn" id="crop-cancel-btn">✕</button></div>
+    <div style="position:relative;width:100%;height:300px;background:#111;border-radius:12px;overflow:hidden;touch-action:none;" id="crop-viewport">
+      <img id="crop-img" style="position:absolute;transform-origin:0 0;cursor:grab;user-select:none;-webkit-user-select:none;" draggable="false">
+    </div>
+    <div style="margin-top:12px;">
+      <div style="font-size:12px;color:#888;margin-bottom:6px;text-align:center;">縮放</div>
+      <input type="range" id="crop-scale" min="0.5" max="4" step="0.05" value="1" style="width:100%;accent-color:#1D9E75;">
+    </div>
+    <button class="submit-btn" id="crop-confirm-btn" style="margin-top:14px;">確認裁剪 ✓</button>
+  </div>
+</div>
 
 <!-- Product history overlay -->
 
@@ -833,6 +848,7 @@ function openProduct(name) {
         '<div class="ph-item-unit">/'+he(e.unit)+'</div>' +
         (isLowest?'<div class="ph-lowest">最低價</div>':'') +
       '</div>' +
+      '<button class="manage-btn ph-edit-btn" data-edit-idx="'+idx+'" style="margin-left:8px;flex-shrink:0;">✏️</button>' +
     '</div>';
   }).join('');
 
@@ -1154,20 +1170,93 @@ function saveFlyer() {
 // ALL EVENT LISTENERS — no inline onclick anywhere
 // ════════════════════════════════
 
+// ── Crop ──
+var cropCallback = null;
+var cropState = { scale:1, x:0, y:0, dragging:false, lastX:0, lastY:0 };
+
+function openCrop(src, onConfirm) {
+  cropCallback = onConfirm;
+  var img = document.getElementById('crop-img');
+  var vp  = document.getElementById('crop-viewport');
+  img.onload = function() {
+    var vpW = vp.offsetWidth, vpH = vp.offsetHeight;
+    var scale = Math.max(vpW / img.naturalWidth, vpH / img.naturalHeight);
+    cropState.scale = scale;
+    cropState.x = (vpW - img.naturalWidth * scale) / 2;
+    cropState.y = (vpH - img.naturalHeight * scale) / 2;
+    var slider = document.getElementById('crop-scale');
+    slider.min = scale * 0.5; slider.max = scale * 5; slider.value = scale;
+    applyCropTransform();
+  };
+  img.src = src;
+  openOv('ov-crop');
+}
+
+function applyCropTransform() {
+  document.getElementById('crop-img').style.transform =
+    'translate('+cropState.x+'px,'+cropState.y+'px) scale('+cropState.scale+')';
+}
+
+function cropConfirm() {
+  var vp  = document.getElementById('crop-viewport');
+  var img = document.getElementById('crop-img');
+  var canvas = document.createElement('canvas');
+  var size = 400; canvas.width = size; canvas.height = size;
+  var s = cropState.scale;
+  canvas.getContext('2d').drawImage(img, -cropState.x/s, -cropState.y/s, vp.offsetWidth/s, vp.offsetHeight/s, 0, 0, size, size);
+  var result = canvas.toDataURL('image/jpeg', 0.85);
+  closeOv('ov-crop');
+  if (cropCallback) { cropCallback(result); cropCallback = null; }
+}
+
+(function(){
+  var vp = document.getElementById('crop-viewport');
+  function startDrag(x,y){ cropState.dragging=true; cropState.lastX=x; cropState.lastY=y; }
+  function moveDrag(x,y){
+    if(!cropState.dragging) return;
+    cropState.x += x-cropState.lastX; cropState.y += y-cropState.lastY;
+    cropState.lastX=x; cropState.lastY=y; applyCropTransform();
+  }
+  function endDrag(){ cropState.dragging=false; }
+
+  vp.addEventListener('mousedown', function(e){ startDrag(e.clientX,e.clientY); });
+  window.addEventListener('mousemove', function(e){ moveDrag(e.clientX,e.clientY); });
+  window.addEventListener('mouseup', endDrag);
+  vp.addEventListener('touchstart', function(e){ e.preventDefault(); startDrag(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+  vp.addEventListener('touchmove',  function(e){ e.preventDefault(); moveDrag(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+  vp.addEventListener('touchend', endDrag);
+
+  document.getElementById('crop-scale').addEventListener('input', function(){
+    var vp2=document.getElementById('crop-viewport');
+    var ns=parseFloat(this.value);
+    var cx=vp2.offsetWidth/2, cy=vp2.offsetHeight/2;
+    cropState.x=cx-(cx-cropState.x)*ns/cropState.scale;
+    cropState.y=cy-(cy-cropState.y)*ns/cropState.scale;
+    cropState.scale=ns; applyCropTransform();
+  });
+  document.getElementById('crop-confirm-btn').addEventListener('click', cropConfirm);
+  document.getElementById('crop-cancel-btn').addEventListener('click', function(){ closeOv('ov-crop'); });
+  document.getElementById('ov-crop').addEventListener('click', function(ev){
+    if(!document.getElementById('ov-crop-inner').contains(ev.target)) closeOv('ov-crop');
+  });
+})();
+
 // Photo
 document.getElementById('btn-photo-pick').addEventListener('click', function(){ document.getElementById('f-photo-input').click(); });
 document.getElementById('btn-photo-clear').addEventListener('click', function(){ setPhotoPreview(null); });
 document.getElementById('f-photo-input').addEventListener('change', function(ev){
   var file = ev.target.files[0]; if (!file) return;
-  compressImage(file, function(base64){ setPhotoPreview(base64); });
-  ev.target.value = '';
+  var reader = new FileReader();
+  reader.onload = function(e){ openCrop(e.target.result, function(c){ setPhotoPreview(c); }); };
+  reader.readAsDataURL(file); ev.target.value = '';
 });
 document.getElementById('btn-de-photo-pick').addEventListener('click', function(){ document.getElementById('de-photo-input').click(); });
 document.getElementById('btn-de-photo-clear').addEventListener('click', function(){ setDePhotoPreview(null); });
 document.getElementById('de-photo-input').addEventListener('change', function(ev){
   var file = ev.target.files[0]; if (!file) return;
-  compressImage(file, function(base64){ setDePhotoPreview(base64); });
-  ev.target.value = '';
+  var reader = new FileReader();
+  reader.onload = function(e){ openCrop(e.target.result, function(c){ setDePhotoPreview(c); }); };
+  reader.readAsDataURL(file); ev.target.value = '';
 });
 
 // Autocomplete
@@ -1269,6 +1358,13 @@ document.getElementById('ov-product').addEventListener('click', function(ev){
 });
 document.getElementById('ph-close-btn').addEventListener('click', function(){ closeOv('ov-product'); });
 document.getElementById('ph-list').addEventListener('click', function(ev){
+  var editBtn = ev.target.closest('.ph-edit-btn');
+  if (editBtn) {
+    var idx = parseInt(editBtn.getAttribute('data-edit-idx'));
+    closeOv('ov-product');
+    openDetail(idx);
+    return;
+  }
   var item = ev.target.closest('.ph-item'); if (!item) return;
   closeOv('ov-product');
   openDetail(parseInt(item.getAttribute('data-entry-idx')));
