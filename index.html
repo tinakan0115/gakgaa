@@ -1191,7 +1191,6 @@ document.getElementById('btn-save-key').addEventListener('click', function(){
 
 // Scan
 document.getElementById('btn-scan').addEventListener('click', function(){
-  if (!apiKey) { toast('請先輸入 Anthropic API Key'); return; }
   document.getElementById('scan-input').click();
 });
 document.getElementById('scan-input').addEventListener('change', function(ev){
