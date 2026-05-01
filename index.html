@@ -392,6 +392,7 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
         <div id="de-photo-preview" style="width:64px;height:64px;border-radius:10px;background:#f5f5f5;border:1.5px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;">📷</div>
         <div style="flex:1;">
           <button class="manage-btn" id="btn-de-photo-pick" style="width:100%;text-align:center;padding:9px;">揀相 / 影相</button>
+          <button class="manage-btn" id="btn-de-photo-recrop" style="width:100%;text-align:center;padding:9px;margin-top:6px;display:none;">✂️ 重新裁剪</button>
           <button class="manage-btn" id="btn-de-photo-clear" style="width:100%;text-align:center;padding:9px;margin-top:6px;display:none;color:#E24B4A;background:#fff0f0;">移除圖片</button>
         </div>
       </div>
@@ -886,6 +887,9 @@ function toggleDetailEdit() {
     document.getElementById('de-unit').innerHTML = units.map(function(u){ return '<option'+(u===e.unit?' selected':'')+'>'+he(u)+'</option>'; }).join('');
     // Load existing photo
     setDePhotoPreview(e.photo || null);
+    if (e.photo) {
+      document.getElementById('de-photo-preview')._origSrc = e.photo;
+    }
     document.getElementById('d-view').style.display = 'none';
     document.getElementById('d-edit').style.display = 'block';
     document.getElementById('d-edit-btn').textContent = '✕ 取消';
@@ -895,14 +899,19 @@ function toggleDetailEdit() {
 function setDePhotoPreview(base64) {
   var prev = document.getElementById('de-photo-preview');
   var clearBtn = document.getElementById('btn-de-photo-clear');
+  var recropBtn = document.getElementById('btn-de-photo-recrop');
   if (base64) {
     prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;">';
     clearBtn.style.display = 'block';
+    recropBtn.style.display = 'block';
     prev._photo = base64;
+    prev._origSrc = base64; // store original for recrop
   } else {
     prev.innerHTML = '📷';
     clearBtn.style.display = 'none';
+    recropBtn.style.display = 'none';
     prev._photo = null;
+    prev._origSrc = null;
   }
 }
 
@@ -1249,6 +1258,15 @@ document.getElementById('f-photo-input').addEventListener('change', function(ev)
   var reader = new FileReader();
   reader.onload = function(e){ openCrop(e.target.result, function(c){ setPhotoPreview(c); }); };
   reader.readAsDataURL(file); ev.target.value = '';
+});
+document.getElementById('btn-de-photo-recrop').addEventListener('click', function(){
+  var prev = document.getElementById('de-photo-preview');
+  var src = prev._origSrc || prev._photo;
+  if (!src) return;
+  openCrop(src, function(c){
+    setDePhotoPreview(c);
+    document.getElementById('de-photo-preview')._origSrc = src; // keep original
+  });
 });
 document.getElementById('btn-de-photo-pick').addEventListener('click', function(){ document.getElementById('de-photo-input').click(); });
 document.getElementById('btn-de-photo-clear').addEventListener('click', function(){ setDePhotoPreview(null); });
