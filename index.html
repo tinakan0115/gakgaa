@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8">
@@ -35,15 +36,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 label { font-size: 13px; color: #666; display: block; margin-bottom: 5px; margin-top: 12px; }
 label:first-of-type { margin-top: 0; }
 input[type=text], input[type=number], select, textarea {
-  width: 100%; font-size: 15px; padding: 11px 13px;
-  border: 1.5px solid #e8e8e8; border-radius: 10px;
-  background: #fff; color: #111; outline: none;
-  -webkit-appearance: none; appearance: none;
+width: 100%; font-size: 15px; padding: 11px 13px;
+border: 1.5px solid #e8e8e8; border-radius: 10px;
+background: #fff; color: #111; outline: none;
+-webkit-appearance: none; appearance: none;
 }
 input:focus, select:focus { border-color: #1D9E75; }
 select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘8’ viewBox=‘0 0 12 8’%3E%3Cpath d=‘M1 1l5 5 5-5’ stroke=’%23999’ stroke-width=‘1.5’ fill=‘none’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
+background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
 }
 .price-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
 
@@ -169,6 +170,7 @@ select {
 .scan-result-price { font-size: 16px; font-weight: 700; color: #0F6E56; margin-top: 4px; }
 .scan-apply-hint { font-size: 11px; color: #1D9E75; margin-top: 3px; }
 </style>
+
 </head>
 <body>
 
@@ -198,7 +200,7 @@ select {
   <div id="sec-add" class="section active">
     <div class="card">
       <div class="card-head"><div class="card-title">📷 AI 自動辨識</div></div>
-      <div style="font-size:12px;color:#aaa;margin-bottom:10px;">暫時未有得用，歡迎課 $5 俾我試整:) </div>
+      <div style="font-size:12px;color:#aaa;margin-bottom:10px;">暫時未有得用，歡迎課 $5 俾我試整 😄</div>
       <div id="api-key-area">
         <label style="margin-top:0">Anthropic API Key</label>
         <div class="api-key-row">
@@ -212,74 +214,77 @@ select {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         影相 / 揀相片自動填寫
       </button>
-      <input type="file" id="scan-input" accept="image/*" capture="environment" style="display:none">
+      <input type="file" id="scan-input" accept="image/*" style="display:none">
       <img id="scan-preview" class="scan-preview" alt="預覽">
       <div id="scan-status" class="scan-status"></div>
       <div class="scan-results" id="scan-results"></div>
     </div>
 
-    <div class="card">
-      <div class="card-head"><div class="card-title">產品資訊</div></div>
-      <label>產品名稱 *</label>
-      <div style="position:relative;">
-        <input type="text" id="f-name" placeholder="例：牛奶" autocomplete="off">
-        <div id="name-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #1D9E75;border-top:none;border-radius:0 0 10px 10px;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
-      </div>
-      <label>品牌 / 備註</label>
-      <input type="text" id="f-brand" placeholder="例：Beatrice、自家品牌">
-      <label>產品圖片（選填）</label>
-      <div id="f-photo-area" style="display:flex;align-items:center;gap:10px;margin-top:4px;">
-        <div id="f-photo-preview" style="width:64px;height:64px;border-radius:10px;background:#f5f5f5;border:1.5px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;">📷</div>
-        <div style="flex:1;">
-          <button class="manage-btn" id="btn-photo-pick" style="width:100%;text-align:center;padding:9px;">揀相 / 影相</button>
-          <button class="manage-btn" id="btn-photo-clear" style="width:100%;text-align:center;padding:9px;margin-top:6px;display:none;color:#E24B4A;background:#fff0f0;">移除圖片</button>
-        </div>
-      </div>
-      <input type="file" id="f-photo-input" accept="image/*" style="display:none">
+```
+<div class="card">
+  <div class="card-head"><div class="card-title">產品資訊</div></div>
+  <label>產品名稱 *</label>
+  <div style="position:relative;">
+    <input type="text" id="f-name" placeholder="例：牛奶" autocomplete="off">
+    <div id="name-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #1D9E75;border-top:none;border-radius:0 0 10px 10px;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+  </div>
+  <label>品牌 / 備註</label>
+  <input type="text" id="f-brand" placeholder="例：Beatrice、自家品牌">
+  <label>產品圖片（選填）</label>
+  <div id="f-photo-area" style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+    <div id="f-photo-preview" style="width:64px;height:64px;border-radius:10px;background:#f5f5f5;border:1.5px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;">📷</div>
+    <div style="flex:1;">
+      <button class="manage-btn" id="btn-photo-pick" style="width:100%;text-align:center;padding:9px;">揀相 / 影相</button>
+      <button class="manage-btn" id="btn-photo-clear" style="width:100%;text-align:center;padding:9px;margin-top:6px;display:none;color:#E24B4A;background:#fff0f0;">移除圖片</button>
     </div>
+  </div>
+  <input type="file" id="f-photo-input" accept="image/*" style="display:none">
+</div>
 
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">類別 *</div>
-        <button class="manage-btn" id="btn-manage-cat">✏️ 管理類別</button>
-      </div>
-      <div class="tag-list" id="cat-list"></div>
-      <div class="add-inline">
-        <input type="text" id="new-cat" placeholder="快速新增類別...">
-        <button id="btn-quick-cat">＋</button>
-      </div>
+<div class="card">
+  <div class="card-head">
+    <div class="card-title">類別 *</div>
+    <button class="manage-btn" id="btn-manage-cat">✏️ 管理類別</button>
+  </div>
+  <div class="tag-list" id="cat-list"></div>
+  <div class="add-inline">
+    <input type="text" id="new-cat" placeholder="快速新增類別...">
+    <button id="btn-quick-cat">＋</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <div class="card-title">超市 *</div>
+    <button class="manage-btn" id="btn-manage-mkt">✏️ 管理超市</button>
+  </div>
+  <div class="tag-list" id="mkt-list"></div>
+  <div class="add-inline">
+    <input type="text" id="new-mkt" placeholder="快速新增超市...">
+    <button id="btn-quick-mkt">＋</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <div class="card-title">價格 *</div>
+    <button class="manage-btn" id="btn-manage-unit">✏️ 管理單位</button>
+  </div>
+  <div class="price-row">
+    <div>
+      <label>價錢 (CAD)</label>
+      <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01">
     </div>
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">超市 *</div>
-        <button class="manage-btn" id="btn-manage-mkt">✏️ 管理超市</button>
-      </div>
-      <div class="tag-list" id="mkt-list"></div>
-      <div class="add-inline">
-        <input type="text" id="new-mkt" placeholder="快速新增超市...">
-        <button id="btn-quick-mkt">＋</button>
-      </div>
+    <div>
+      <label>單位</label>
+      <select id="f-unit"></select>
     </div>
+  </div>
+</div>
 
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">價格 *</div>
-        <button class="manage-btn" id="btn-manage-unit">✏️ 管理單位</button>
-      </div>
-      <div class="price-row">
-        <div>
-          <label>價錢 (CAD)</label>
-          <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01">
-        </div>
-        <div>
-          <label>單位</label>
-          <select id="f-unit"></select>
-        </div>
-      </div>
-    </div>
+<button class="submit-btn" id="btn-submit">確認新增 ✓</button>
+```
 
-    <button class="submit-btn" id="btn-submit">確認新增 ✓</button>
   </div>
 
   <div id="sec-search" class="section">
@@ -301,6 +306,7 @@ select {
 </div>
 
 <!-- Flyer add/edit overlay -->
+
 <div class="overlay" id="ov-flyer">
   <div class="sheet" id="ov-flyer-inner">
     <div class="sheet-handle"></div>
@@ -317,6 +323,7 @@ select {
 <div class="toast" id="toast"></div>
 
 <!-- Product history overlay -->
+
 <div class="overlay" id="ov-product">
   <div class="sheet" id="ov-product-inner">
     <div class="sheet-handle"></div>
@@ -332,6 +339,7 @@ select {
 </div>
 
 <!-- Detail overlay -->
+
 <div class="overlay" id="ov-detail">
   <div class="sheet" id="ov-detail-inner">
     <div class="sheet-handle"></div>
@@ -381,6 +389,7 @@ select {
 </div>
 
 <!-- Confirm overlay -->
+
 <div class="overlay" id="ov-confirm">
   <div class="sheet" id="ov-confirm-inner" style="padding:24px 20px 32px;">
     <div class="sheet-handle"></div>
@@ -393,6 +402,7 @@ select {
 </div>
 
 <!-- Share overlay -->
+
 <div class="overlay" id="ov-share">
   <div class="sheet" id="ov-share-inner">
     <div class="sheet-handle"></div>
@@ -409,6 +419,7 @@ select {
 </div>
 
 <!-- Edit list overlay -->
+
 <div class="overlay" id="ov-edit">
   <div class="sheet" id="ov-edit-inner">
     <div class="sheet-handle"></div>
@@ -1336,5 +1347,6 @@ document.getElementById('flyer-list').addEventListener('click', function(ev){
 // ── Init ──
 loadData();
 </script>
+
 </body>
 </html>
