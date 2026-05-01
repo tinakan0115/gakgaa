@@ -680,13 +680,25 @@ function compressImage(file, callback) {
     var img = new Image();
     img.onload = function() {
       var canvas = document.createElement('canvas');
-      var MAX = 300;
+      var MAX = 800;
       var w = img.width, h = img.height;
       if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
       else       { if (h > MAX) { w = w * MAX / h; h = MAX; } }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL('image/jpeg', 0.7));
+      // Try quality 0.5, if still too big reduce further
+      var data = canvas.toDataURL('image/jpeg', 0.5);
+      // base64 to bytes: len * 3/4
+      if (data.length * 0.75 > 4500000) {
+        var MAX2 = 500;
+        if (w > h) { h = h * MAX2 / w; w = MAX2; }
+        else       { w = w * MAX2 / h; h = MAX2; }
+        var c2 = document.createElement('canvas');
+        c2.width = w; c2.height = h;
+        c2.getContext('2d').drawImage(img, 0, 0, w, h);
+        data = c2.toDataURL('image/jpeg', 0.4);
+      }
+      callback(data);
     };
     img.src = ev.target.result;
   };
@@ -1199,8 +1211,11 @@ document.getElementById('scan-input').addEventListener('change', function(ev){
   reader.onload = function(e){
     var preview = document.getElementById('scan-preview');
     preview.src = e.target.result; preview.style.display = 'block';
-    var base64 = e.target.result.split(',')[1];
-    runScan(base64, file.type||'image/jpeg');
+    // Compress before sending to AI
+    compressImage(file, function(compressed){
+      var base64 = compressed.split(',')[1];
+      runScan(base64, 'image/jpeg');
+    });
   };
   reader.readAsDataURL(file);
   ev.target.value = '';
