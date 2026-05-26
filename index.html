@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8">
@@ -36,15 +35,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, 
 label { font-size: 13px; color: #666; display: block; margin-bottom: 5px; margin-top: 12px; }
 label:first-of-type { margin-top: 0; }
 input[type=text], input[type=number], select, textarea {
-width: 100%; font-size: 15px; padding: 11px 13px;
-border: 1.5px solid #e8e8e8; border-radius: 10px;
-background: #fff; color: #111; outline: none;
--webkit-appearance: none; appearance: none;
+  width: 100%; font-size: 15px; padding: 11px 13px;
+  border: 1.5px solid #e8e8e8; border-radius: 10px;
+  background: #fff; color: #111; outline: none;
+  -webkit-appearance: none; appearance: none;
 }
 input:focus, select:focus { border-color: #1D9E75; }
 select {
-background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘8’ viewBox=‘0 0 12 8’%3E%3Cpath d=‘M1 1l5 5 5-5’ stroke=’%23999’ stroke-width=‘1.5’ fill=‘none’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
-background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
 }
 .price-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
 
@@ -100,6 +99,17 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
 .flyer-url { font-size: 12px; color: #1D9E75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 .flyer-open-btn { background: #1D9E75; color: #fff; border: none; border-radius: 20px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 .flyer-edit-btn { background: #f0f0f0; color: #555; border: none; border-radius: 20px; padding: 7px 12px; font-size: 13px; cursor: pointer; flex-shrink: 0; }
+
+/* Flyer scan items */
+.fsitem { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #f5f5f5; }
+.fsitem:last-child { border-bottom:none; }
+.fsitem-check { width:22px; height:22px; border-radius:6px; border:1.5px solid #ddd; background:#fff; flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.fsitem-check.on { background:#1D9E75; border-color:#1D9E75; color:#fff; font-size:14px; }
+.fsitem-info { flex:1; min-width:0; }
+.fsitem-name { font-size:14px; font-weight:600; color:#111; }
+.fsitem-meta { font-size:12px; color:#888; margin-top:2px; }
+.fsitem-price { font-size:16px; font-weight:700; color:#0F6E56; text-align:right; flex-shrink:0; }
+.fsitem-unit { font-size:11px; color:#999; text-align:right; }
 
 /* Autocomplete */
 .suggest-item { padding: 11px 14px; font-size: 14px; color: #111; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
@@ -170,7 +180,6 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
 .scan-result-price { font-size: 16px; font-weight: 700; color: #0F6E56; margin-top: 4px; }
 .scan-apply-hint { font-size: 11px; color: #1D9E75; margin-top: 3px; }
 </style>
-
 </head>
 <body>
 
@@ -219,71 +228,68 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
       <div class="scan-results" id="scan-results"></div>
     </div>
 
-```
-<div class="card">
-  <div class="card-head"><div class="card-title">產品資訊</div></div>
-  <label>產品名稱 *</label>
-  <div style="position:relative;">
-    <input type="text" id="f-name" placeholder="例：牛奶" autocomplete="off">
-    <div id="name-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #1D9E75;border-top:none;border-radius:0 0 10px 10px;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
-  </div>
-  <label>品牌 / 備註</label>
-  <input type="text" id="f-brand" placeholder="例：Beatrice、自家品牌">
-  <label>產品圖片（選填）</label>
-  <div id="f-photo-area" style="display:flex;align-items:center;gap:10px;margin-top:4px;">
-    <div id="f-photo-preview" style="width:64px;height:64px;border-radius:10px;background:#f5f5f5;border:1.5px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;">📷</div>
-    <div style="flex:1;">
-      <button class="manage-btn" id="btn-photo-pick" style="width:100%;text-align:center;padding:9px;">揀相 / 影相</button>
-      <button class="manage-btn" id="btn-photo-clear" style="width:100%;text-align:center;padding:9px;margin-top:6px;display:none;color:#E24B4A;background:#fff0f0;">移除圖片</button>
+    <div class="card">
+      <div class="card-head"><div class="card-title">產品資訊</div></div>
+      <label>產品名稱 *</label>
+      <div style="position:relative;">
+        <input type="text" id="f-name" placeholder="例：牛奶" autocomplete="off">
+        <div id="name-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #1D9E75;border-top:none;border-radius:0 0 10px 10px;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+      </div>
+      <label>品牌 / 備註</label>
+      <input type="text" id="f-brand" placeholder="例：Beatrice、自家品牌">
+      <label>產品圖片（選填）</label>
+      <div id="f-photo-area" style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+        <div id="f-photo-preview" style="width:64px;height:64px;border-radius:10px;background:#f5f5f5;border:1.5px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;">📷</div>
+        <div style="flex:1;">
+          <button class="manage-btn" id="btn-photo-pick" style="width:100%;text-align:center;padding:9px;">揀相 / 影相</button>
+          <button class="manage-btn" id="btn-photo-clear" style="width:100%;text-align:center;padding:9px;margin-top:6px;display:none;color:#E24B4A;background:#fff0f0;">移除圖片</button>
+        </div>
+      </div>
+      <input type="file" id="f-photo-input" accept="image/*" style="display:none">
     </div>
-  </div>
-  <input type="file" id="f-photo-input" accept="image/*" style="display:none">
-</div>
 
-<div class="card">
-  <div class="card-head">
-    <div class="card-title">類別 *</div>
-    <button class="manage-btn" id="btn-manage-cat">✏️ 管理類別</button>
-  </div>
-  <div class="tag-list" id="cat-list"></div>
-  <div class="add-inline">
-    <input type="text" id="new-cat" placeholder="快速新增類別...">
-    <button id="btn-quick-cat">＋</button>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-head">
-    <div class="card-title">超市 *</div>
-    <button class="manage-btn" id="btn-manage-mkt">✏️ 管理超市</button>
-  </div>
-  <div class="tag-list" id="mkt-list"></div>
-  <div class="add-inline">
-    <input type="text" id="new-mkt" placeholder="快速新增超市...">
-    <button id="btn-quick-mkt">＋</button>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-head">
-    <div class="card-title">價格 *</div>
-    <button class="manage-btn" id="btn-manage-unit">✏️ 管理單位</button>
-  </div>
-  <div class="price-row">
-    <div>
-      <label>價錢 (CAD)</label>
-      <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">類別 *</div>
+        <button class="manage-btn" id="btn-manage-cat">✏️ 管理類別</button>
+      </div>
+      <div class="tag-list" id="cat-list"></div>
+      <div class="add-inline">
+        <input type="text" id="new-cat" placeholder="快速新增類別...">
+        <button id="btn-quick-cat">＋</button>
+      </div>
     </div>
-    <div>
-      <label>單位</label>
-      <select id="f-unit"></select>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">超市 *</div>
+        <button class="manage-btn" id="btn-manage-mkt">✏️ 管理超市</button>
+      </div>
+      <div class="tag-list" id="mkt-list"></div>
+      <div class="add-inline">
+        <input type="text" id="new-mkt" placeholder="快速新增超市...">
+        <button id="btn-quick-mkt">＋</button>
+      </div>
     </div>
-  </div>
-</div>
 
-<button class="submit-btn" id="btn-submit">確認新增 ✓</button>
-```
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">價格 *</div>
+        <button class="manage-btn" id="btn-manage-unit">✏️ 管理單位</button>
+      </div>
+      <div class="price-row">
+        <div>
+          <label>價錢 (CAD)</label>
+          <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div>
+          <label>單位</label>
+          <select id="f-unit"></select>
+        </div>
+      </div>
+    </div>
 
+    <button class="submit-btn" id="btn-submit">確認新增 ✓</button>
   </div>
 
   <div id="sec-search" class="section">
@@ -301,11 +307,45 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
       <div id="flyer-list"></div>
       <div id="flyer-empty" style="text-align:center;padding:24px 0;color:#aaa;font-size:14px;display:none;">未有 Flyer，撳「新增」加入超市連結</div>
     </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">🤖 Flyer Scan</div></div>
+      <div style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6;">上傳 Flyer 截圖，AI 自動識別所有產品同價格，揀選後批量加入格價記錄。</div>
+
+      <label style="margin-top:0;">超市名稱 *</label>
+      <select id="scan-mkt-select"></select>
+      <div style="font-size:12px;color:#aaa;margin-top:4px;">AI 識別到嘅產品會自動歸入呢個超市</div>
+
+      <label>上傳 Flyer 截圖</label>
+      <button class="scan-btn" id="btn-flyer-scan" style="margin-bottom:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        上傳 Flyer 圖片
+      </button>
+      <input type="file" id="flyer-scan-input" accept="image/*" multiple style="display:none">
+
+      <img id="flyer-scan-preview" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover;margin-top:10px;display:none;">
+      <div id="flyer-scan-status" class="scan-status"></div>
+    </div>
+
+    <div id="flyer-scan-results" style="display:none;">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title" id="flyer-results-title">識別結果</div>
+          <div style="display:flex;gap:8px;">
+            <button class="manage-btn" id="btn-select-all">全選</button>
+            <button class="manage-btn" id="btn-deselect-all">取消</button>
+          </div>
+        </div>
+        <div id="flyer-items-list"></div>
+      </div>
+      <button class="submit-btn" id="btn-batch-add">批量加入格價記錄 ✓</button>
+    </div>
   </div>
+
+  <div id="sec-scan" class="section"></div>
 </div>
 
 <!-- Flyer add/edit overlay -->
-
 <div class="overlay" id="ov-flyer">
   <div class="sheet" id="ov-flyer-inner">
     <div class="sheet-handle"></div>
@@ -319,8 +359,8 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
   </div>
 </div>
 
-<!-- Crop overlay -->
 
+<!-- Crop overlay -->
 <div class="overlay" id="ov-crop" style="z-index:500;">
   <div class="sheet" id="ov-crop-inner" style="padding:20px 20px 36px;">
     <div class="sheet-handle"></div>
@@ -337,7 +377,6 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
 </div>
 
 <!-- Product history overlay -->
-
 <div class="overlay" id="ov-product">
   <div class="sheet" id="ov-product-inner">
     <div class="sheet-handle"></div>
@@ -353,7 +392,6 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
 </div>
 
 <!-- Detail overlay -->
-
 <div class="overlay" id="ov-detail">
   <div class="sheet" id="ov-detail-inner">
     <div class="sheet-handle"></div>
@@ -404,7 +442,6 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
 </div>
 
 <!-- Confirm overlay -->
-
 <div class="overlay" id="ov-confirm">
   <div class="sheet" id="ov-confirm-inner" style="padding:24px 20px 32px;">
     <div class="sheet-handle"></div>
@@ -417,7 +454,6 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
 </div>
 
 <!-- Share overlay -->
-
 <div class="overlay" id="ov-share">
   <div class="sheet" id="ov-share-inner">
     <div class="sheet-handle"></div>
@@ -434,7 +470,6 @@ background-repeat: no-repeat; background-position: right 12px center; padding-ri
 </div>
 
 <!-- Edit list overlay -->
-
 <div class="overlay" id="ov-edit">
   <div class="sheet" id="ov-edit-inner">
     <div class="sheet-handle"></div>
@@ -613,11 +648,12 @@ function switchTab(t) {
   document.getElementById('sec-add').classList.toggle('active', t==='add');
   document.getElementById('sec-search').classList.toggle('active', t==='search');
   document.getElementById('sec-flyers').classList.toggle('active', t==='flyers');
+  document.getElementById('sec-scan').classList.toggle('active', t==='scan');
   document.getElementById('tab-btn-add').classList.toggle('active', t==='add');
   document.getElementById('tab-btn-search').classList.toggle('active', t==='search');
   document.getElementById('tab-btn-flyers').classList.toggle('active', t==='flyers');
   if (t==='search') { renderChips(); render(); }
-  if (t==='flyers') { renderFlyers(); }
+  if (t==='flyers') { renderFlyers(); renderScanMktSelect(); }
 }
 
 // ── Tag lists ──
@@ -1176,7 +1212,130 @@ function saveFlyer() {
   toast(flyerEditIdx === -1 ? '✓ 已新增 Flyer' : '✓ 已更新 Flyer');
 }
 
-// ALL EVENT LISTENERS — no inline onclick anywhere
+// ── Flyer AI Scan ──
+var flyerScanItems = []; // [{name, brand, price, unit, cat, selected}]
+
+function renderScanMktSelect() {
+  var sel = document.getElementById('scan-mkt-select');
+  var cur = sel.value;
+  sel.innerHTML = mkts.map(function(m){
+    return '<option'+(m===cur?' selected':'')+'>'+he(m)+'</option>';
+  }).join('');
+}
+
+function setFlyerStatus(msg, cls) {
+  var el = document.getElementById('flyer-scan-status');
+  el.textContent = msg; el.className = 'scan-status '+(cls||'');
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function runFlyerScan(base64, mime) {
+  setFlyerStatus('AI 正在分析 Flyer...', 'loading');
+  document.getElementById('flyer-scan-results').style.display = 'none';
+  flyerScanItems = [];
+
+  var mkt = document.getElementById('scan-mkt-select').value;
+  var prompt = '你係一個超市格價助手。請仔細分析呢張 Flyer 圖片，識別所有產品同特價資訊。\n\n' +
+    '請只以純 JSON 格式回覆，唔好有任何其他文字。格式如下：\n' +
+    '{"items":[{"name":"產品名稱","brand":"品牌(如有)","price":12.5,"unit":"個","category":"建議類別"}]}\n\n' +
+    '類別請從以下選擇最合適：' + cats.join('、') + '（如唔符合可自訂）\n' +
+    '單位請從以下選擇最合適：' + units.join('、') + '\n' +
+    '價格必須係數字（CAD 加幣），唔好有 $ 符號。\n' +
+    '如果圖片唔清楚或冇相關資訊，請返回 {"items":[]}';
+
+  fetch('https://gakgaa-proxy.tinakan0115.workers.dev/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 2048,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mime, data: base64 } },
+        { type: 'text', text: prompt }
+      ]}]
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data.error) { setFlyerStatus('錯誤：'+data.error.message, 'error'); return; }
+    var text = data.content && data.content[0] && data.content[0].text;
+    if (!text) { setFlyerStatus('AI 未能識別，請重試', 'error'); return; }
+    text = text.replace(/```json|```/g,'').trim();
+    var parsed = JSON.parse(text);
+    var items = parsed.items || [];
+    if (!items.length) { setFlyerStatus('圖片中未能識別到產品價格', 'error'); return; }
+    setFlyerStatus('');
+    flyerScanItems = items.map(function(item){ return Object.assign({}, item, { mkt: mkt, selected: true }); });
+    renderFlyerItems();
+    document.getElementById('flyer-scan-results').style.display = 'block';
+    document.getElementById('flyer-results-title').textContent = '識別結果（共 '+items.length+' 件）';
+  })
+  .catch(function(err){ setFlyerStatus('連線失敗：'+err.message, 'error'); });
+}
+
+function renderFlyerItems() {
+  var el = document.getElementById('flyer-items-list');
+  el.innerHTML = flyerScanItems.map(function(item, i){
+    return '<div class="fsitem">' +
+      '<div class="fsitem-check'+(item.selected?' on':'') + '" data-fidx="'+i+'">'+(item.selected?'✓':'')+'</div>' +
+      '<div class="fsitem-info">' +
+        '<div class="fsitem-name">'+he(item.name||'')+'</div>' +
+        '<div class="fsitem-meta">'+(item.brand?he(item.brand)+' · ':'')+he(item.category||'')+'</div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="fsitem-price">CA$'+(item.price||0).toFixed(2)+'</div>' +
+        '<div class="fsitem-unit">/'+(item.unit||'個')+'</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function batchAdd() {
+  var selected = flyerScanItems.filter(function(i){ return i.selected; });
+  if (!selected.length) { toast('請至少選擇一件產品'); return; }
+  var now = new Date();
+  var dateStr = now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate();
+  selected.forEach(function(item){
+    var cat = item.category && cats.indexOf(item.category)!==-1 ? item.category : cats[0];
+    if (item.category && cats.indexOf(item.category)===-1) { cats.push(item.category); }
+    entries.unshift({ id: Date.now()+Math.random(), name: item.name, brand: item.brand||'',
+      cat: cat, mkt: item.mkt, price: item.price||0, unit: item.unit||'個', photo: null, date: dateStr });
+  });
+  save(); renderCats(); render(); renderChips();
+  toast('✓ 已批量加入 '+selected.length+' 條記錄！');
+  document.getElementById('flyer-scan-results').style.display = 'none';
+  document.getElementById('flyer-scan-preview').style.display = 'none';
+  flyerScanItems = [];
+}
+
+// ── Flyer scan event listeners ──
+document.getElementById('btn-flyer-scan').addEventListener('click', function(){
+  document.getElementById('flyer-scan-input').click();
+});
+document.getElementById('flyer-scan-input').addEventListener('change', function(ev){
+  var file = ev.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var preview = document.getElementById('flyer-scan-preview');
+    preview.src = e.target.result; preview.style.display = 'block';
+    compressImage(file, function(compressed){
+      runFlyerScan(compressed.split(',')[1], 'image/jpeg');
+    });
+  };
+  reader.readAsDataURL(file);
+  ev.target.value = '';
+});
+document.getElementById('flyer-items-list').addEventListener('click', function(ev){
+  var chk = ev.target.closest('.fsitem-check'); if (!chk) return;
+  var i = parseInt(chk.getAttribute('data-fidx'));
+  flyerScanItems[i].selected = !flyerScanItems[i].selected;
+  renderFlyerItems();
+});
+document.getElementById('btn-select-all').addEventListener('click', function(){
+  flyerScanItems.forEach(function(i){ i.selected=true; }); renderFlyerItems();
+});
+document.getElementById('btn-deselect-all').addEventListener('click', function(){
+  flyerScanItems.forEach(function(i){ i.selected=false; }); renderFlyerItems();
+});
+document.getElementById('btn-batch-add').addEventListener('click', batchAdd);
 // ════════════════════════════════
 
 // ── Crop ──
@@ -1474,6 +1633,5 @@ document.getElementById('flyer-list').addEventListener('click', function(ev){
 // ── Init ──
 loadData();
 </script>
-
 </body>
 </html>
